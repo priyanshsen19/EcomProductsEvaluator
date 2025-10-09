@@ -68,6 +68,9 @@ if (require.main === module) {
       }
 
       startCron(); 
+      if (process.env.RAILWAY_STATIC_URL && !process.env.PORT) {
+        process.env.PORT = String(process.env.PORT || 8080);
+      }
 
       const port = process.env.PORT ? Number(process.env.PORT) : 4000;
       app.listen(port, () => console.log(`Listening on port ${port}`));
