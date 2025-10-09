@@ -102,6 +102,9 @@ docker compose up --build
 **Live Site:**  
 https://ecomproductsevaluator.onrender.com
 
+**Demo Link:**
+https://bit.ly/3IH1aQy
+
 ---
 
 ## API Docs
