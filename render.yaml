@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: product-service
+    env: docker
+    dockerfilePath: ./services/product-service/Dockerfile
+    dockerContext: ./services/product-service
+    envVars:
+      - key: PORT
+        value: 4000
+      - key: MONGODB_URI
+        value: ${MONGODB_URI}
+      - key: WOO_BASE_URL
+        value: https://wp-multisite.convertcart.com
+      - key: WOO_KEY
+        sync: false
+      - key: WOO_SECRET
+        sync: false
+
+  - type: web
+    name: segment-service
+    env: docker
+    dockerfilePath: ./services/segment-service/Dockerfile
+    dockerContext: ./services/segment-service
+    envVars:
+      - key: PORT
+        value: 5050
+      - key: MONGODB_URI
+        value: ${MONGODB_URI}
+
+  - type: web
+    name: frontend
+    env: docker
+    dockerfilePath: ./services/frontend/Dockerfile
+    dockerContext: ./services/frontend
+    envVars:
+      - key: VITE_PRODUCTS_API
+        value: https://product-service.onrender.com
+      - key: VITE_SEGMENTS_API
+        value: https://segment-service.onrender.com
