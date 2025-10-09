@@ -1,0 +1,56 @@
+version: "3.9"
+services:
+  mongo:
+    image: mongo:7
+    container_name: woo-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+
+  product-service:
+    build:
+      context: ./services/product-service
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      MONGODB_URI: ${MONGODB_URI}
+      WOO_BASE_URL: https://wp-multisite.convertcart.com
+      WOO_KEY: ${WOO_KEY}
+      WOO_SECRET: ${WOO_SECRET}
+      PORT: 4000
+    depends_on:
+      - mongo
+    restart: unless-stopped
+
+  segment-service:
+    build:
+      context: ./services/segment-service
+      dockerfile: Dockerfile
+    ports:
+      - "5050:5050"
+    environment:
+      MONGODB_URI: ${MONGODB_URI}
+      PORT: 5050
+    depends_on:
+      - mongo
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./services/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    environment:
+      VITE_PRODUCTS_API: http://localhost:4000
+      VITE_SEGMENTS_API: http://localhost:5050
+    depends_on:
+      - product-service
+      - segment-service
+    restart: unless-stopped
+
+volumes:
+  mongo-data:
