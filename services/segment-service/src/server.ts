@@ -59,6 +59,6 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(specs));
 async function main() {
   await mongoose.connect(process.env.MONGODB_URI!);
   const port = Number(process.env.PORT || 6000);
-  app.listen(port, "0.0.0.0", () => console.log(`segment-service up on :${port}`));
+  app.listen(port, () => console.log(`Listening on port ${port}`));
 }
 main().catch(e => { console.error(e); process.exit(1); });

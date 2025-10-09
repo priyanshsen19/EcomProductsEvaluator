@@ -69,7 +69,7 @@ if (require.main === module) {
       startCron(); 
 
       const port = Number(process.env.PORT || 4000);
-      app.listen(port, "0.0.0.0", () => console.log(`product-service up on :${port}`));
+      app.listen(port, () => console.log(`Listening on port ${port}`));
     } catch (e) {
       console.error(e);
       process.exit(1);
