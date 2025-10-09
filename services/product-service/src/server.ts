@@ -66,7 +66,7 @@ const specs = swaggerJsdoc({
       },
     ],
   },
-  apis: ["./src/**/*.ts"],
+  apis: ["./dist/**/*.js", "./src/**/*.ts"],
 });
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(specs));
 
