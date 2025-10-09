@@ -13,27 +13,34 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const bodySchema = z.object({ rulesText: z.string().max(5000) });
+const bodySchema = z.object({
+  rulesText: z.string().max(5000),
+});
 
 /**
  * @openapi
  * /segments/evaluate:
  *   post:
- *     summary: Evaluate segment rules
+ *     summary: Evaluate segment rules based on filter expressions
+ *     tags:
+ *       - Segments
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - rulesText
  *             properties:
  *               rulesText:
  *                 type: string
+ *                 description: Multi-line rules such as "price > 1000\\nstock_status = instock"
  *     responses:
  *       200:
- *         description: OK
+ *         description: Returns the MongoDB filter and matching products
  *       400:
- *         description: Validation error
+ *         description: Validation error or invalid rule format
  */
 app.post("/segments/evaluate", async (req, res) => {
   const { rulesText } = bodySchema.parse(req.body);
@@ -47,21 +54,51 @@ app.post("/segments/evaluate", async (req, res) => {
   }
 });
 
+/**
+ * @openapi
+ * /segments/evaluate:
+ *   get:
+ *     summary: Simple health/info route for Segment evaluation endpoint
+ *     tags:
+ *       - Segments
+ *     responses:
+ *       200:
+ *         description: Returns a short info message
+ */
 app.get("/segments/evaluate", (_req, res) => {
   res.send("Use POST /segments/evaluate with JSON body to evaluate a segment.");
 });
 
 const specs = swaggerJsdoc({
-  definition: { openapi: "3.0.0", info: { title: "Segment Service", version: "1.0.0" } },
-  apis: ["./src/server.ts"]
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "Segment Service",
+      version: "1.0.0",
+      description:
+        "Service for evaluating dynamic segment rules and generating MongoDB queries.",
+    },
+    servers: [
+      {
+        url:
+          process.env.RAILWAY_STATIC_URL ||
+          process.env.RENDER_EXTERNAL_URL ||
+          "http://localhost:5050",
+      },
+    ],
+  },
+  apis: ["./src/**/*.ts"],
 });
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 async function main() {
   await mongoose.connect(process.env.MONGODB_URI!);
+  console.log("Connected to MongoDB");
   const port = process.env.PORT ? Number(process.env.PORT) : 5050;
   app.listen(port, "0.0.0.0", () => {
-    console.log(`✅ Segment service listening on port ${port}`);
+    console.log(`Segment service listening on port ${port}`);
   });
 }
 main().catch(e => { console.error(e); process.exit(1); });
+
+export default app;

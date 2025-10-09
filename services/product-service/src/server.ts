@@ -17,10 +17,25 @@ app.use(express.json());
  * @openapi
  * /products:
  *   get:
- *     summary: Get products
+ *     summary: Retrieve all products
+ *     tags:
+ *       - Products
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *         description: Maximum number of products to return
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination
  *     responses:
  *       200:
- *         description: OK
+ *         description: Successfully fetched products
  */
 app.get("/products", async (req, res) => {
   const { limit = "50", page = "1" } = req.query as any;
@@ -37,9 +52,21 @@ app.get("/products", async (req, res) => {
 const specs = swaggerJsdoc({
   definition: {
     openapi: "3.0.0",
-    info: { title: "Product Service", version: "1.0.0" },
+    info: {
+      title: "Product Service",
+      version: "1.0.0",
+      description: "API for product ingestion and querying from WooCommerce",
+    },
+    servers: [
+      {
+        url:
+          process.env.RAILWAY_STATIC_URL ||
+          process.env.RENDER_EXTERNAL_URL ||
+          "http://localhost:4000",
+      },
+    ],
   },
-  apis: ["./src/server.ts"],
+  apis: ["./src/**/*.ts"],
 });
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(specs));
 
@@ -53,8 +80,11 @@ export const connectDB = async () => {
 
 export const startCron = () => {
   return cron.schedule("0 */3 * * *", () =>
-    ingestAll(process.env.WOO_BASE_URL!, process.env.WOO_KEY!, process.env.WOO_SECRET!)
-      .catch(err => console.error("ingest error", err))
+    ingestAll(
+      process.env.WOO_BASE_URL!,
+      process.env.WOO_KEY!,
+      process.env.WOO_SECRET!
+    ).catch((err) => console.error("ingest error", err))
   );
 };
 
@@ -64,16 +94,18 @@ if (require.main === module) {
       await connectDB();
 
       if (process.env.ENABLE_BOOTSTRAP_INGEST !== "false") {
-        await ingestAll(process.env.WOO_BASE_URL!, process.env.WOO_KEY!, process.env.WOO_SECRET!);
+        await ingestAll(
+          process.env.WOO_BASE_URL!,
+          process.env.WOO_KEY!,
+          process.env.WOO_SECRET!
+        );
       }
 
-      startCron(); 
-      if (process.env.RAILWAY_STATIC_URL && !process.env.PORT) {
-        process.env.PORT = String(process.env.PORT || 8080);
-      }
-
+      startCron();
       const port = process.env.PORT ? Number(process.env.PORT) : 4000;
-      app.listen(port, () => console.log(`Listening on port ${port}`));
+      app.listen(port, "0.0.0.0", () =>
+        console.log(`Product service listening on port ${port}`)
+      );
     } catch (e) {
       console.error(e);
       process.exit(1);
