@@ -107,8 +107,8 @@ https://ecomproductsevaluator.onrender.com
 ## API Docs
 
 Swagger UI available at:  
-- Product Service → `/docs`  
-- Segment Service → `/docs`
+- Product Service → https://product-service-production-bfc7.up.railway.app/docs/
+- Segment Service → https://segment-service-production.up.railway.app/docs/
 
 Each API includes OpenAPI specification with example request/response structures.
 
