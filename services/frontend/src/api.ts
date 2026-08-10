@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const timeout = 10_000;
+// Free Render services can take around a minute to wake after they have idled.
+const timeout = 75_000;
 
 export const productsApi = axios.create({
   baseURL: import.meta.env.VITE_PRODUCTS_API || "http://localhost:4000",
