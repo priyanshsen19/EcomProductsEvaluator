@@ -79,13 +79,22 @@ export const connectDB = async () => {
 };
 
 export const startCron = () => {
-  return cron.schedule("0 */3 * * *", () =>
-    ingestAll(
+  return cron.schedule("0 */3 * * *", runIngest);
+};
+
+const runIngest = async () => {
+  try {
+    await ingestAll(
       process.env.WOO_BASE_URL!,
       process.env.WOO_KEY!,
       process.env.WOO_SECRET!
-    ).catch((err) => console.error("ingest error", err))
-  );
+    );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(
+      `Product ingestion failed; the service will remain available. ${message}`
+    );
+  }
 };
 
 if (require.main === module) {
@@ -93,19 +102,15 @@ if (require.main === module) {
     try {
       await connectDB();
 
-      if (process.env.ENABLE_BOOTSTRAP_INGEST !== "false") {
-        await ingestAll(
-          process.env.WOO_BASE_URL!,
-          process.env.WOO_KEY!,
-          process.env.WOO_SECRET!
-        );
-      }
-
       startCron();
       const port = process.env.PORT ? Number(process.env.PORT) : 4000;
       app.listen(port, "0.0.0.0", () =>
         console.log(`Product service listening on port ${port}`)
       );
+
+      if (process.env.ENABLE_BOOTSTRAP_INGEST !== "false") {
+        void runIngest();
+      }
     } catch (e) {
       console.error(e);
       process.exit(1);

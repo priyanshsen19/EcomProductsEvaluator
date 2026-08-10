@@ -47,9 +47,23 @@ Monorepo with three services:
 Run all services (MongoDB, product-service, segment-service, frontend) in containers:
 
 ```bash
-cd infra
 docker compose up --build
 ```
+
+### Seed demo products
+
+DummyJSON provides a keyless product feed with categories, tags, stock, and prices.
+Disable the unavailable WooCommerce bootstrap import in your root `.env`, then seed MongoDB:
+
+```bash
+ENABLE_BOOTSTRAP_INGEST=false
+docker compose up -d --build mongo product-service segment-service
+docker compose run --rm product-service npm run seed
+```
+
+The seed command imports up to 100 products from DummyJSON by default. Set
+`SEED_SOURCE_URL` to use another compatible endpoint; if the endpoint cannot be
+reached, the command seeds a bundled 12-product fallback dataset instead.
 
 **Default Ports:**  
 - Product Service → 4000  

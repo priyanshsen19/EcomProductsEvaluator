@@ -10,7 +10,16 @@ export default function App() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    productsApi.get("/products").then(r => setItems(r.data.items));
+    productsApi
+      .get("/products")
+      .then((response) => setItems(response.data.items))
+      .catch((requestError) => {
+        const message =
+          requestError?.response?.data?.error ??
+          requestError?.message ??
+          "Unable to load products";
+        setError(message);
+      });
   }, []);
 
   const evaluate = async () => {
@@ -40,7 +49,7 @@ export default function App() {
       padding: "40px",
       fontFamily: "system-ui, sans-serif"
     }}>
-      <h1 style={{ fontSize: 26, fontWeight: 600, marginBottom: 24 }}>Woo Segments Dashboard</h1>
+      <h1 style={{ fontSize: 26, fontWeight: 600, marginBottom: 24 }}>Product Segment Explorer</h1>
 
       <div style={{
         display: "grid",
