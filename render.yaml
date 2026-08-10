@@ -1,35 +1,41 @@
 services:
   - type: web
     name: product-service
-    env: docker
+    runtime: docker
+    plan: free
+    region: singapore
     dockerfilePath: ./services/product-service/Dockerfile
     dockerContext: ./services/product-service
+    healthCheckPath: /admin/health
+    initialDeployHook: npm run seed
     envVars:
       - key: PORT
-        value: 4000
+        value: 10000
       - key: MONGODB_URI
-        value: ${MONGODB_URI}
-      - key: WOO_BASE_URL
-        value: https://wp-multisite.convertcart.com
-      - key: WOO_KEY
         sync: false
-      - key: WOO_SECRET
-        sync: false
+      - key: ENABLE_BOOTSTRAP_INGEST
+        value: "false"
+      - key: SEED_SOURCE_URL
+        value: https://dummyjson.com/products?limit=100
 
   - type: web
     name: segment-service
-    env: docker
+    runtime: docker
+    plan: free
+    region: singapore
     dockerfilePath: ./services/segment-service/Dockerfile
     dockerContext: ./services/segment-service
+    healthCheckPath: /segments/evaluate
     envVars:
       - key: PORT
-        value: 5050
+        value: 10000
       - key: MONGODB_URI
-        value: ${MONGODB_URI}
+        sync: false
 
   - type: web
     name: frontend
-    env: docker
+    runtime: docker
+    plan: free
     dockerfilePath: ./services/frontend/Dockerfile
     dockerContext: ./services/frontend
     envVars:
